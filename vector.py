@@ -1,4 +1,5 @@
 import functools
+import itertools
 import math
 import numbers
 import operator
@@ -80,6 +81,31 @@ class Vector:
                 raise AttributeError(error)
 
         super().__setattr__(key, value)
+
+    def __format__(self, format_spec):
+        if format_spec.endswith("h"):
+            format_spec = format_spec[:-1]
+            coords = itertools.chain([abs(self)], self.angles())
+            outer_format = '<{}>'
+        else:
+            coords = self
+            outer_format = '({})'
+
+        components = (format(c, format_spec) for c in coords)
+
+        return outer_format.format(", ".join(components))
+
+    def angle(self, n):
+        r = math.sqrt(sum(x**2 for x in self[n:]))
+        a = math.atan2(r, self[n-1])
+
+        if (n == len(self) - 1) and (self[-1] < 0):
+            return math.pi * 2 - a
+        else:
+            return a
+
+    def angles(self):
+        return (self.angle(n) for n in range(1, len(self)))
 
     @classmethod
     def from_bytes(cls, octets):
